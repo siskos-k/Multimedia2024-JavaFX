@@ -294,7 +294,9 @@ public class AdminActionsScreen extends Application {
 
         // Update the All Books ListView
         updateAllBooksListView();
-
+//        library.serializeUsers();
+//        library.serializeBooks();
+//        library.serializeBorrowings();
         // Save changes to books
     }
 
@@ -452,7 +454,7 @@ public class AdminActionsScreen extends Application {
             borrowingInfo.append("Username: ").append(borrowing.getUser().getUsername()).append("\n");
             borrowingInfo.append("Book ISBN: ").append(borrowing.getBook().getISBN()).append("\n");
             borrowingInfo.append("Borrow Date: ").append(borrowing.getBorrowingDate()).append("\n");
-
+            borrowingInfo.append("Return Date: ").append(borrowing.getReturnDate()).append("\n");
             // Add a separator between borrowings
             borrowingInfo.append("\n");
         }

@@ -55,6 +55,9 @@ public class User implements LibraryUser, Serializable {
     public String getUsername() {
         return username;
     }
+    public void removeBorrowing(Borrowing borrowing) {
+        borrowings.remove(borrowing);
+    }
 
     public boolean hasBorrowedBook(Book book) {
         for (Borrowing borrowing : borrowings) {

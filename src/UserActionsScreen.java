@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Application;
@@ -62,33 +63,71 @@ public class UserActionsScreen extends Application {
          Scene scene = new Scene(root, 400, 400);
          primaryStage.setScene(scene);
          primaryStage.show();
+         
+
      }
 
     private void updateBorrowedBooksListView() {
+        System.out.println("Current username is: ");
+        System.out.println("updateBorrowedBooksListView called" + library.getAllBorrowings());
+
         ObservableList<String> borrowedBooks = FXCollections.observableArrayList();
+
+        // Create a list to store borrowings to be removed
+        List<Borrowing> borrowingsToRemove = new ArrayList<>();
+
+        // Iterate over all borrowings in the library
         for (Borrowing borrowing : library.getAllBorrowings()) {
+            // Check if the borrowing belongs to the current user
             if (borrowing.getUser().getUsername().equals(user.getUsername())) {
                 Book borrowedBook = borrowing.getBook();
-                // Check if the borrowed book exists in the current library's books
-                if (library.getBooks().contains(borrowedBook)) {
+
+                // Check if the borrowed book title is in the library
+                if (borrowedBook != null && isBookTitleInLibrary(borrowedBook.getTitle())) {
+                    // Book title is in the library, include it in the borrowed books list
                     String bookInfo = String.format("Title: %s, \nMax Return Date: %s",
                             borrowedBook.getTitle(), borrowing.getReturnDate());
                     borrowedBooks.add(bookInfo);
+                } else {
+                    // Book is not in the library, add the borrowing to the removal list
+                    borrowingsToRemove.add(borrowing);
                 }
             }
         }
+
+        // Remove borrowings outside the loop
+        library.getAllBorrowings().removeAll(borrowingsToRemove);
+
         borrowedBooksListView.setItems(borrowedBooks);
+
+        // Debug print statement
+        System.out.println("Borrowed Books: " + borrowedBooks);
+    }
+
+    private boolean isBookTitleInLibrary(String bookTitle) {
+        for (Book libraryBook : library.getBooks()) {
+            if (libraryBook.getTitle().equals(bookTitle)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
 
+
     private void borrowBook() {
-        if (user.getBorrowings().size() >= 2) {
+        int maxBooksAllowed = 2;
+
+        long userBorrowingsCount = library.getAllBorrowings().stream()
+                .filter(borrowing -> borrowing.getUser().equals(user))
+                .count();
+
+        if (userBorrowingsCount >= maxBooksAllowed) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            System.out.println(user.getBorrowings());
             errorAlert.setTitle("Error");
             errorAlert.setHeaderText(null);
-            errorAlert.setContentText("You can only borrow up to 2 books concurrently.");
+            errorAlert.setContentText("You can only borrow up to " + maxBooksAllowed + " books concurrently.");
             errorAlert.showAndWait();
             return;
         }
@@ -105,7 +144,6 @@ public class UserActionsScreen extends Application {
 
         if (bookToBorrow != null) {
             library.borrowBook(user, bookToBorrow);
-            library.serializeUsers();
 
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
             successAlert.setTitle("Borrow Book");
@@ -154,7 +192,6 @@ public class UserActionsScreen extends Application {
 
                     // Add the rating and comment to the book
                     library.addCommentAndRating(user, bookToRate, comment, rating);
-                    library.serializeUsers();
 
                     Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                     successAlert.setTitle("Add Rating and Comment");

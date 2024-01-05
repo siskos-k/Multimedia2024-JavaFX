@@ -32,27 +32,60 @@ public class Library implements Serializable {
         this.allBorrowings = new ArrayList<>();
 
     }
-     public void serializeUsers() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("users.ser"))) {
-            oos.writeObject(users);
-            System.out.println("Users serialized successfully.");
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void serializeUsers() {
+        LibrarySerializer.saveUsers(users);
+    }
+
+    public void serializeBooks() {
+        LibrarySerializer.saveBooks(books);
+    }
+
+    public void serializeBorrowings() {
+        LibrarySerializer.saveBorrowings(allBorrowings);
+    }
+    public List<String> getBookTitles() {
+        return books.stream().map(Book::getTitle).collect(Collectors.toList());
+    }
+
+    public void deserializeUsers() {
+        List<User> loadedUsers = LibrarySerializer.loadUsers();
+        if (loadedUsers != null) {
+            users.clear();
+            users.addAll(loadedUsers);
+            System.out.println(loadedUsers);
         }
     }
+
+    public void deserializeBooks() {
+        List<Book> loadedBooks = LibrarySerializer.loadBooks();
+        if (loadedBooks != null) {
+            books.clear();
+            books.addAll(loadedBooks);
+            System.out.println(loadedBooks);
+
+        }
+    }
+
+    public void deserializeBorrowings() {
+        List<Borrowing> loadedBorrowings = LibrarySerializer.loadBorrowings();
+        if (loadedBorrowings != null) {
+            allBorrowings.clear();
+            allBorrowings.addAll(loadedBorrowings);
+            for (Borrowing borrowing : loadedBorrowings) {
+                String user = borrowing.getUser().getUsername();
+                String book = borrowing.getBook().getTitle();
+                System.out.println("Loaded Borrowing - User: " + user + ", Book: " + book);
+            }
+
+        }
+    }
+
      public List<Borrowing> getAllBorrowings () {
     	 return this.allBorrowings;
      }
 
     // Deserialize users from a file
-    public void deserializeUsers() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("users.ser"))) {
-            users = (List<User>) ois.readObject();
-            System.out.println("Users deserialized successfully.");
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
+    
     public void addRatingAndComment(User user, Book book, int rating, String comment) {
         if (user != null && book != null) {
             book.addRating(rating);
@@ -115,20 +148,69 @@ public class Library implements Serializable {
         System.out.println("Book added successfully!");
     }
     public void deleteBookByAdmin(Admin admin, String ISBN) {
-            Book bookToDelete = null;
-            for (Book book : books) {
-                if (book.getISBN().equals(ISBN)) {
-                    bookToDelete = book;
-                    break;
+        Book bookToDelete = null;
+
+        // Find the book to delete
+        for (Book book : books) {
+            if (book.getISBN().equals(ISBN)) {
+                bookToDelete = book;
+                break;
+            }
+        }
+
+        if (bookToDelete != null) {
+            // Remove the book from each user's borrowings
+            for (User user : users) {
+                List<Borrowing> userBorrowings = user.getBorrowings();
+                List<Borrowing> borrowingsToRemove = new ArrayList<>();
+
+                // Check if the book is in the user's borrowings
+                for (Borrowing borrowing : userBorrowings) {
+                    if (borrowing.getBook().equals(bookToDelete)) {
+                        borrowingsToRemove.add(borrowing);
+                    }
                 }
+
+                // Remove the book from the user's borrowings
+                userBorrowings.removeAll(borrowingsToRemove);
             }
-            if (bookToDelete != null) {
-                books.remove(bookToDelete);
-                System.out.println("Book with ISBN " + ISBN + " deleted successfully.");
-            } else {
-                System.out.println("Book with ISBN " + ISBN + " not found.");
-            }
+
+            // Remove the book from the library's list of books
+            books.remove(bookToDelete);
+
+            System.out.println("Book with ISBN " + ISBN + " deleted successfully.");
+
+            // Print the updated information
+            printLibraryInformation();
+        } else {
+            System.out.println("Book with ISBN " + ISBN + " not found.");
+        }
     }
+
+    // Helper method to print library information for debugging
+    private void printLibraryInformation() {
+        System.out.println("Current Library Information:");
+        System.out.println("Total Books: " + books.size());
+        System.out.println("Total Users: " + users.size());
+
+        System.out.println("\nBooks:");
+        for (Book book : books) {
+            System.out.println(book);
+        }
+
+        System.out.println("\nUsers:");
+        for (User user : users) {
+            System.out.println(user);
+        }
+
+        System.out.println("\nBorrowings:");
+        for (User user : users) {
+            for (Borrowing borrowing : user.getBorrowings()) {
+                System.out.println(borrowing);
+            }
+        }
+    }
+
     public void editBookByAdmin(Admin admin, String ISBN, String newTitle, String newAuthor, String newPublisher, int newReleaseYear, int newNumCopies, String newCategory) {
         Book bookToEdit = null;
     
@@ -429,6 +511,19 @@ public void printAllCategories() {
         // Displaying all borrowings after specific borrowings
         viewAllBorrowings();
     }
+
+    public void removeBorrowing(Borrowing borrowing) {
+        // Implement the logic to remove a borrowing from the library
+        // This could involve removing it from a list of borrowings, etc.
+        // Make sure to update your data structures accordingly.
+
+        // For example, if you have a list of all borrowings in the library:
+        allBorrowings.remove(borrowing);
+
+        // If you have a map of borrowings by user, you may need to remove it from there as well:
+//        borrowingsByUser.get(borrowing.getUser()).remove(bor rowing);
+    }
+
     public void deleteUser(Admin admin, String username) {
         User userToDelete = getUserByUsername(username);
 

@@ -17,15 +17,22 @@ public class LibraryManagementSystem extends Application {
     public static void main(String[] args) {
         library = new Library(); // Initialize the library in the main method
         Admin medialabAdmin = new Admin("a", "a");
-        User medialabUser = new User("u", "u", "u", "u", "u", "u");
-        library.addUser(medialabUser);
-
         library.addAdmin(medialabAdmin);
-        library.addRandomUsers(5);
-
-        library.addSampleBooksAndRatings();
-        library.addSpecificBorrowings();
-
+        
+        library.deserializeUsers();
+        library.deserializeBooks();
+        library.deserializeBorrowings();
+        
+        
+//        initialization without serialization
+//        User medialabUser = new User("u", "u", "u", "u", "u", "u");
+//        library.addUser(medialabUser);
+//        library.addRandomUsers(5);
+//        library.addSampleBooksAndRatings();
+//        library.addSpecificBorrowings();
+//        library.serializeUsers();
+//      library.serializeBooks();
+//      library.serializeBorrowings();
         // Launch the JavaFX application
         launch(args);
     }
