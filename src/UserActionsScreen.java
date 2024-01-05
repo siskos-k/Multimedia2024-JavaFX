@@ -195,7 +195,9 @@ public class UserActionsScreen extends Application {
 
                     // Add the rating and comment to the book
                     library.addCommentAndRating(user, bookToRate, comment, rating);
-
+                    library.serializeUsers();
+                    library.serializeBooks();
+                    library.serializeBorrowings();
                     Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                     successAlert.setTitle("Add Rating and Comment");
                     successAlert.setHeaderText(null);
