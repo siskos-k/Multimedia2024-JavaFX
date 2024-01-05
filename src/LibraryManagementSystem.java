@@ -1,10 +1,12 @@
+import java.util.List;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -20,10 +22,9 @@ public class LibraryManagementSystem extends Application {
 
         library.addAdmin(medialabAdmin);
         library.addRandomUsers(5);
-    
+
         library.addSampleBooksAndRatings();
         library.addSpecificBorrowings();
-
 
         // Launch the JavaFX application
         launch(args);
@@ -35,6 +36,37 @@ public class LibraryManagementSystem extends Application {
 
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
+        root.setAlignment(Pos.CENTER);
+
+        // Welcome message
+        Label welcomeLabel = new Label("Welcome to MultiMediaLibrary!");
+        welcomeLabel.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
+
+        // Create an HBox for the title to center it
+        HBox titleBox = new HBox(welcomeLabel);
+        titleBox.setAlignment(Pos.CENTER);
+        root.getChildren().add(titleBox);
+
+        // Get the top-rated books
+        List<Book> topRatedBooks = library.getTopRatedBooks(5);
+
+        // Create a new VBox for the top-rated books list
+        VBox booksListVBox = new VBox(5);
+
+        // Display the top-rated books title
+        Label topRatedTitleLabel = new Label("Top Rated Books:");
+        topRatedTitleLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold;");
+        booksListVBox.getChildren().add(topRatedTitleLabel);
+
+        // Display the top-rated books
+        for (Book book : topRatedBooks) {
+            double roundedRating = Math.round(book.getAverageRating() * 100.0) / 100.0;
+            Label bookLabel = new Label(book.getTitle() + " (Rating: " + String.format("%.2f", roundedRating) + ")");
+            bookLabel.setStyle("-fx-alignment: CENTER-LEFT;"); // Set the alignment to left
+            booksListVBox.getChildren().add(bookLabel);
+        }
+
+        root.getChildren().add(booksListVBox);
 
         Button userButton = new Button("Log in as User");
         userButton.setOnAction(e -> showUserLogin(primaryStage));
@@ -51,14 +83,12 @@ public class LibraryManagementSystem extends Application {
         Button exitButton = new Button("Exit");
         exitButton.setOnAction(e -> primaryStage.close());
         root.getChildren().add(exitButton);
-        
-      
-        Scene scene = new Scene(root, 300, 200);
+
+        Scene scene = new Scene(root, 500, 400);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    
     private void showUserLogin(Stage primaryStage) {
         UserLoginScreen userLoginScreen = new UserLoginScreen(library);
         userLoginScreen.start(new Stage());
@@ -72,11 +102,8 @@ public class LibraryManagementSystem extends Application {
         adminLoginScreen.start(new Stage());
     }
 
-
     private void showCreateUser() {
         CreateNewUserScreen createNewUserScreen = new CreateNewUserScreen(library);
         createNewUserScreen.start(new Stage());
     }
-
-    // ... (existing methods)
 }

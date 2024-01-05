@@ -67,6 +67,9 @@ public class AdminActionsScreen extends Application {
 
         Button editUserCredentialsButton = new Button("Edit User Credentials");
         editUserCredentialsButton.setOnAction(e -> editUserCredentials());
+        
+        Button deleteUserButton = new Button("Delete a User");
+        deleteUserButton.setOnAction(e -> deleteUser());
 
         Button exitButton = new Button("Exit Admin Actions");
         exitButton.setOnAction(e -> primaryStage.close());
@@ -75,7 +78,7 @@ public class AdminActionsScreen extends Application {
                 titleLabel, allBooksListView, viewAllBooksButton, addBookButton, editBookButton,
                 deleteBookButton, allCategoriesListView, editCategoryButton,
                 deleteCategoryButton, viewAllBorrowingsButton, terminateBorrowingButton,
-                editUserCredentialsButton, exitButton
+                editUserCredentialsButton, deleteUserButton, exitButton
         );
 
         Scene scene = new Scene(root, 400, 600);
@@ -326,6 +329,36 @@ public class AdminActionsScreen extends Application {
         // Implement view all categories functionality
         viewAllCategoriesInfo();
     }
+    private void deleteUser() {
+        TextInputDialog usernameDialog = new TextInputDialog();
+        usernameDialog.setTitle("Delete a User");
+        usernameDialog.setHeaderText("Enter the username of the user to delete:");
+        String usernameToDelete = usernameDialog.showAndWait().orElse("");
+
+        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationAlert.setTitle("Confirmation");
+        confirmationAlert.setHeaderText(null);
+        confirmationAlert.setContentText("Are you sure you want to delete the user with username: " + usernameToDelete + "?");
+
+        Optional<ButtonType> result = confirmationAlert.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // Call the method to delete a user
+            library.deleteUser(admin, usernameToDelete);
+            
+            // Update the user list view after deletion (if you have one)
+            // updateAllUsersListView();
+            
+            // Update the All Books ListView
+            updateAllBooksListView();
+
+            // Update the All Categories ListView
+            updateAllCategoriesListView();
+
+            // Update the viewAllBorrowings information
+            viewAllBorrowings();
+        }
+    }
     private void editCategory() {
         // Prompt the admin to enter the old category (can be empty) and the new category
         TextInputDialog oldCategoryDialog = new TextInputDialog();
@@ -449,10 +482,34 @@ public class AdminActionsScreen extends Application {
         String ISBNToTerminate = ISBNDialog.showAndWait().orElse("");
 
         // Call the method to terminate borrowing by admin
-        library.terminateBorrowingByAdmin(admin, usernameToTerminate, ISBNToTerminate);
-        System.out.println("Borrowing terminated successfully!");
-    
+        Borrowing terminatedBorrowing = library.terminateBorrowingByAdmin(admin, usernameToTerminate, ISBNToTerminate);
+
+        if (terminatedBorrowing != null) {
+            // Display a confirmation message
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setTitle("Terminate Borrowing");
+            successAlert.setHeaderText(null);
+            successAlert.setContentText("Borrowing terminated successfully!");
+            successAlert.showAndWait();
+
+            // Update the All Books ListView
+            updateAllBooksListView();
+
+            // Update the All Categories ListView
+            updateAllCategoriesListView();
+
+            // Update the viewAllBorrowings information
+            viewAllBorrowings();
+        } else {
+            // Display an error alert if termination fails
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("Borrowing termination failed. Please check the username and ISBN.");
+            errorAlert.showAndWait();
+        }
     }
+
 
     private void editUserCredentials() {
         // Prompt the admin to enter the username of the user to edit

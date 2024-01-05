@@ -85,6 +85,7 @@ public class User implements LibraryUser, Serializable {
     public List<Borrowing> getBorrowings() {
         return borrowings;
     }
+   
 
     public void borrowBook(Book book) {
         if (book.getNumCopies() > 0) {
@@ -112,6 +113,9 @@ public class User implements LibraryUser, Serializable {
     // Setter for surname
     public void setSurname(String surname) {
         this.surname = surname;
+    }
+    public  void setBorrowings(List<Borrowing> borrowings) {
+       this.borrowings = borrowings;
     }
 
     // Setter for ADT

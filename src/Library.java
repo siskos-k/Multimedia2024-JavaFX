@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Library implements Serializable {
     private List<Book> books;
@@ -210,6 +211,7 @@ public void printAllCategories() {
     
     public void borrowBook(User user, Book book) {
         // Check if the book is available for borrowing
+    	  if (canUserBorrowMoreBooks(user)) {
         if (book.getNumCopies() > 0) {
             book.setNumCopies(book.getNumCopies() - 1);
             Borrowing borrowing = new Borrowing(user, book);
@@ -219,6 +221,30 @@ public void printAllCategories() {
         } else {
             System.out.println("Sorry, no copies available for borrowing.");
         }
+    } else {
+        System.out.println("User has reached the maximum limit of borrowed books.");
+    }
+}
+    private boolean canUserBorrowMoreBooks(User user) {
+        // Check if the user has less than 2 borrowed books
+        return getUserBorrowedBooksCount(user) < 2;
+    }
+    private int getUserBorrowedBooksCount(User user) {
+        // Count the number of books borrowed by the user
+        int count = 0;
+        for (Borrowing borrowing : allBorrowings) {
+            if (borrowing.getUser().equals(user)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public List<Book> getTopRatedBooks(int count) {
+        return books.stream()
+                .sorted((b1, b2) -> Double.compare(b2.getAverageRating(), b1.getAverageRating()))
+                .limit(count)
+                .collect(Collectors.toList());
     }
     public void viewBorrowedBooks(String username) {
         System.out.println("Borrowed Books for User " + username + ":");
@@ -403,7 +429,30 @@ public void printAllCategories() {
         // Displaying all borrowings after specific borrowings
         viewAllBorrowings();
     }
-    public void terminateBorrowingByAdmin(Admin admin, String username, String ISBN) {
+    public void deleteUser(Admin admin, String username) {
+        User userToDelete = getUserByUsername(username);
+
+        if (userToDelete != null) {
+            // Remove the user
+            users.remove(userToDelete);
+
+            // Mark all books borrowed by this user as returned
+            for (Borrowing borrowing : allBorrowings) {
+                if (borrowing.getUser().equals(userToDelete)) {
+                    Book borrowedBook = borrowing.getBook();
+                    borrowedBook.setNumCopies(borrowedBook.getNumCopies() + 1);
+                }
+            }
+
+            // Remove all borrowings associated with this user
+            allBorrowings.removeIf(borrowing -> borrowing.getUser().equals(userToDelete));
+
+            System.out.println("User " + username + " deleted successfully.");
+        } else {
+            System.out.println("User " + username + " not found.");
+        }
+    }
+    public Borrowing terminateBorrowingByAdmin(Admin admin, String username, String ISBN) {
         // Check if the admin has viewing privileges
         if (admin.hasViewingPrivileges()) {
             // Find the user by username
@@ -418,11 +467,17 @@ public void printAllCategories() {
                     // Remove the borrowing entry
                     Borrowing borrowingToRemove = findBorrowing(user, book);
                     allBorrowings.remove(borrowingToRemove);
+                    List <Borrowing> BorrowingsNew =  user.getBorrowings();
+                    
+                    boolean truee = BorrowingsNew.remove(borrowingToRemove);
+                    System.out.println(user.getBorrowings().remove(borrowingToRemove));
+                    user.setBorrowings(BorrowingsNew);
 
                     // Update the book's available copies
                     book.setNumCopies(book.getNumCopies() + 1);
 
                     System.out.println("Borrowing terminated successfully by admin.");
+                    return borrowingToRemove; // Return the terminated borrowing
                 } else {
                     System.out.println("User " + username + " is not currently borrowing the book with ISBN " + ISBN + ".");
                 }
@@ -432,8 +487,10 @@ public void printAllCategories() {
         } else {
             System.out.println("Admin does not have sufficient privileges to terminate borrowings.");
         }
-    
+
+        return null; // Return null if termination fails
     }
+
     
     // Helper method to check if a book is currently borrowed by a user
     private boolean isBookBorrowed(User user, Book book) {

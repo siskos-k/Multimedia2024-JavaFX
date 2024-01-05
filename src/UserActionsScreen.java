@@ -17,6 +17,7 @@ public class UserActionsScreen extends Application {
 
     private ListView<String> borrowedBooksListView;
     private TextArea searchResultsTextArea;
+    private VBox root;  // Add this line
 
     public UserActionsScreen(User user, Library library) {
         this.user = user;
@@ -25,44 +26,43 @@ public class UserActionsScreen extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("User Actions");
+    	 primaryStage.setTitle("User Actions");
 
-        VBox root = new VBox(10);
-        root.setPadding(new Insets(10));
-        Label welcomeLabel = new Label("Welcome, " + user.getUsername() + "!");
-        root.getChildren().add(welcomeLabel);
+         root = new VBox(10);  // Update this line
+         root.setPadding(new Insets(10));
+         Label welcomeLabel = new Label("Welcome, " + user.getUsername() + "!");
+         root.getChildren().add(welcomeLabel);
 
-        Label titleLabel = new Label("Borrowed Books:");
-        borrowedBooksListView = new ListView<>();
-        updateBorrowedBooksListView();
+         Label titleLabel = new Label("Borrowed Books:");
+         borrowedBooksListView = new ListView<>();
+         updateBorrowedBooksListView();
 
-        Button borrowButton = new Button("Borrow a Book");
-        borrowButton.setOnAction(e -> borrowBook());
+         Button borrowButton = new Button("Borrow a Book");
+         borrowButton.setOnAction(e -> borrowBook());
 
-        Button addRatingButton = new Button("Add Rating and Comment");
-        addRatingButton.setOnAction(e -> addRatingAndComment());
+         Button addRatingButton = new Button("Add Rating and Comment");
+         addRatingButton.setOnAction(e -> addRatingAndComment());
 
+         Button searchButton = new Button("Search Books");
+         searchButton.setOnAction(e -> searchBooks());
 
-        Button searchButton = new Button("Search Books");
-        searchButton.setOnAction(e -> searchBooks());
-        
-        searchResultsTextArea = new TextArea();
-        searchResultsTextArea.setEditable(false);
-        searchResultsTextArea.setWrapText(true);
-        searchResultsTextArea.setFont(Font.font("Arial", 12));
-        
-        Button exitButton = new Button("Exit User Actions");
-        exitButton.setOnAction(e -> {
-            primaryStage.close();
-            new LibraryManagementSystem().start(new Stage());
-        });
-        root.getChildren().addAll(titleLabel, borrowedBooksListView, borrowButton, addRatingButton, searchButton,
-                new Label("Search Results:"), searchResultsTextArea, exitButton);
+         searchResultsTextArea = new TextArea();
+         searchResultsTextArea.setEditable(false);
+         searchResultsTextArea.setWrapText(true);
+         searchResultsTextArea.setFont(Font.font("Arial", 12));
 
-        Scene scene = new Scene(root, 400, 400);
-        primaryStage.setScene(scene);
-        primaryStage.show();
-    }
+         Button exitButton = new Button("Exit User Actions");
+         exitButton.setOnAction(e -> {
+             primaryStage.close();
+             new LibraryManagementSystem().start(new Stage());
+         });
+         root.getChildren().addAll(titleLabel, borrowedBooksListView, borrowButton, addRatingButton, searchButton,
+                 exitButton);
+
+         Scene scene = new Scene(root, 400, 400);
+         primaryStage.setScene(scene);
+         primaryStage.show();
+     }
 
     private void updateBorrowedBooksListView() {
         ObservableList<String> borrowedBooks = FXCollections.observableArrayList();
@@ -71,7 +71,9 @@ public class UserActionsScreen extends Application {
                 Book borrowedBook = borrowing.getBook();
                 // Check if the borrowed book exists in the current library's books
                 if (library.getBooks().contains(borrowedBook)) {
-                    borrowedBooks.add(borrowedBook.getTitle());
+                    String bookInfo = String.format("Title: %s, \nMax Return Date: %s",
+                            borrowedBook.getTitle(), borrowing.getReturnDate());
+                    borrowedBooks.add(bookInfo);
                 }
             }
         }
@@ -79,7 +81,18 @@ public class UserActionsScreen extends Application {
     }
 
 
+
     private void borrowBook() {
+        if (user.getBorrowings().size() >= 2) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            System.out.println(user.getBorrowings());
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("You can only borrow up to 2 books concurrently.");
+            errorAlert.showAndWait();
+            return;
+        }
+
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Borrow a Book");
         dialog.setHeaderText(null);
@@ -93,7 +106,6 @@ public class UserActionsScreen extends Application {
         if (bookToBorrow != null) {
             library.borrowBook(user, bookToBorrow);
             library.serializeUsers();
-//            library.serializeBooks();
 
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
             successAlert.setTitle("Borrow Book");
@@ -111,7 +123,7 @@ public class UserActionsScreen extends Application {
             errorAlert.showAndWait();
         }
     }
-    
+
     
     private void addRatingAndComment() {
         TextInputDialog dialog = new TextInputDialog();
@@ -222,23 +234,85 @@ public class UserActionsScreen extends Application {
         // Perform the search
         List<Book> searchResults = library.searchBooks(searchTitle, searchAuthor, searchReleaseYear);
 
-        // Display search results in the TextArea
+        // Create a new VBox to hold the search result buttons and "Back to User Actions" button
+        VBox searchResultsBox = new VBox(10);
+
+        // Initialize a new StringBuilder for each search
         StringBuilder resultsText = new StringBuilder();
+
         if (!searchResults.isEmpty()) {
-            resultsText.append("Search results:\n");
             for (Book result : searchResults) {
+                // Create a Button for each book
+                Button bookButton = new Button(result.getTitle());
+
+                // Set the action for the button
+                bookButton.setOnAction(e -> displayBookDetails(result));
+
+                // Add the button to the VBox
+                searchResultsBox.getChildren().add(bookButton);
+
+                // Append book details to the StringBuilder
                 resultsText.append("Title: ").append(result.getTitle())
                         .append(", Author: ").append(result.getAuthor())
                         .append(", Release Year: ").append(result.getReleaseYear())
                         .append(", ISBN: ").append(result.getISBN())
+                        .append(", Rating: ").append(result.getAverageRating())
+                        .append(", Number of Reviews: ").append(result.getRatings().size())
                         .append("\n");
             }
+
+            // Add "Back to User Actions" button
+            Button backToUserActionsButton = new Button("Back to User Actions");
+            backToUserActionsButton.setOnAction(e -> {
+                // Reset the screen by calling the start method again
+                start(new Stage());
+            });
+
+            // Add the "Back to User Actions" button to the VBox
+            searchResultsBox.getChildren().add(backToUserActionsButton);
         } else {
             resultsText.append("No books found matching the search criteria.");
         }
-        searchResultsTextArea.setText(resultsText.toString());
-    }
 
+        // Set the content of the TextArea
+        searchResultsTextArea.setText(resultsText.toString());
+
+        // Clear existing content and add the VBox with buttons to the main UI
+        root.getChildren().clear();
+        root.getChildren().add(searchResultsBox);
+    }
+    
+private void displayBookDetails(Book book) {
+        // Create a new stage for book details
+        Stage bookDetailsStage = new Stage();
+        bookDetailsStage.setTitle("Book Details - " + book.getTitle());
+
+        // Create UI components for book details
+        VBox bookDetailsRoot = new VBox(10);
+        Label titleLabel = new Label("Title: " + book.getTitle());
+        Label authorLabel = new Label("Author: " + book.getAuthor());
+        Label publisherLabel = new Label("Publisher: " + book.getPublisher());
+        Label releaseYearLabel = new Label("Release Year: " + book.getReleaseYear());
+        Label isbnLabel = new Label("ISBN: " + book.getISBN());
+        Label numCopiesLabel = new Label("Number of Copies: " + book.getNumCopies());
+        Label categoryLabel = new Label("Category: " + book.getCategory());
+        Label averageRatingLabel = new Label("Average Rating: " + book.getAverageRating());
+
+        // Assuming 'comments' is a List<String> in the Book class
+        Label commentsLabel = new Label("Comments: " + String.join(", ", book.getComments()));
+
+        // Assuming 'ratings' is a List<Integer> in the Book class
+        Label ratingsLabel = new Label("Ratings: " + book.getRatings().toString());
+
+        bookDetailsRoot.getChildren().addAll(titleLabel, authorLabel, categoryLabel, averageRatingLabel, releaseYearLabel, isbnLabel, numCopiesLabel, publisherLabel, ratingsLabel, commentsLabel);
+
+        // Create scene and set it to the stage
+        Scene bookDetailsScene = new Scene(bookDetailsRoot, 300, 200);
+        bookDetailsStage.setScene(bookDetailsScene);
+
+        // Show the stage
+        bookDetailsStage.show();
+    }
     public static void main(String[] args) {
         launch(args);
     }
