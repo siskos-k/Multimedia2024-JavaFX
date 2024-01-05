@@ -315,13 +315,12 @@ public void printAllCategories() {
         // Count the number of books borrowed by the user
         int count = 0;
         for (Borrowing borrowing : allBorrowings) {
-            if (borrowing.getUser().equals(user)) {
+            if (borrowing.getUser().getUsername().equals(user.getUsername())) {
                 count++;
             }
         }
         return count;
     }
-
     public List<Book> getTopRatedBooks(int count) {
         return books.stream()
                 .sorted((b1, b2) -> Double.compare(b2.getAverageRating(), b1.getAverageRating()))
@@ -403,12 +402,15 @@ public void printAllCategories() {
     }
     public void addCommentAndRating(User user, Book book, String comment, int rating) {
         if (user != null) {
-            // Check if the user has borrowed the specified book
-            if (user.hasBorrowedBook(book)) {
+            // Check if the user is currently borrowing the specified book
+            boolean isCurrentlyBorrowing = getAllBorrowings().stream()
+                    .anyMatch(borrowing -> borrowing.getUser().getUsername().equals(user.getUsername()) && borrowing.getBook().getTitle().equals(book.getTitle()));
+
+            if (isCurrentlyBorrowing) {
                 user.addCommentAndRating(book, comment, rating);
                 System.out.println("Rating and comment added successfully!");
             } else {
-                System.out.println("You can only add ratings and comments for books you have borrowed.");
+                System.out.println("You can only add ratings and comments for books you are currently borrowing.");
             }
         } else {
             System.out.println("User not found.");
@@ -640,38 +642,7 @@ public void printAllCategories() {
            
             
         }
-        // private void addRatingsAndComments(Book book, int numRatingsAndComments) {
-        //     String[] sampleComments = {
-        //         "A captivating read!",
-        //         "Well-written and thought-provoking.",
-        //         "Highly recommended.",
-        //         "Couldn't put it down!",
-        //         "Great characters and plot.",
-        //         "An absolute classic.",
-        //         "Interesting and informative.",
-        //         "Page-turner from start to finish."
-        //         // Add more meaningful comments as needed
-        //     };
-    
-        //     Random random = new Random();
-    
-        //     for (int i = 0; i < numRatingsAndComments; i++) {
-        //         int randomRating = random.nextInt(5) + 1;  // Random rating between 1 and 5
-        //         String randomComment = sampleComments[random.nextInt(sampleComments.length)];
-    
-        //         book.addRating(randomRating);
-        //         // book.addComment("good");
-        //     }
-        // }
-
-        // public void addCommentAndRating(User user, Book book, String comment, int rating) {
-        //     if (user != null) {
-        //         user.addCommentAndRating(book, comment, rating);
-        //     } else {
-        //         System.out.println("User not found.");
-        //     }
-        // }
-    
+       
         private Borrowing findBorrowingByUserAndBookISBN(User user, String bookISBN) {
             for (Borrowing borrowing : allBorrowings) {
                 if (borrowing.getUser().equals(user) && borrowing.getBook().getISBN().equals(bookISBN)) {

@@ -120,7 +120,7 @@ public class UserActionsScreen extends Application {
         int maxBooksAllowed = 2;
 
         long userBorrowingsCount = library.getAllBorrowings().stream()
-                .filter(borrowing -> borrowing.getUser().equals(user))
+                .filter(borrowing -> borrowing.getUser().getUsername().equals(user.getUsername()))
                 .count();
 
         if (userBorrowingsCount >= maxBooksAllowed) {
@@ -175,8 +175,11 @@ public class UserActionsScreen extends Application {
         Book bookToRate = library.findBookByISBN(bookISBNToRate);
 
         if (bookToRate != null) {
-            // Check if the user has borrowed the specified book
-            if (user.hasBorrowedBook(bookToRate)) {
+            // Check if the user is currently borrowing the specified book
+            boolean isCurrentlyBorrowing = library.getAllBorrowings().stream()
+                    .anyMatch(borrowing -> borrowing.getUser().getUsername().equals(user.getUsername()) && borrowing.getBook().getTitle().equals(bookToRate.getTitle()));
+
+            if (isCurrentlyBorrowing) {
                 // Ask the user for a rating
                 int rating = getRatingFromUser();
 
@@ -209,7 +212,7 @@ public class UserActionsScreen extends Application {
                 Alert errorAlert = new Alert(Alert.AlertType.ERROR);
                 errorAlert.setTitle("Error");
                 errorAlert.setHeaderText(null);
-                errorAlert.setContentText("You can only add ratings and comments for books you have borrowed.");
+                errorAlert.setContentText("You can only add ratings and comments for books you are currently borrowing.");
                 errorAlert.showAndWait();
             }
         } else {

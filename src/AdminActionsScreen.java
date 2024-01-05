@@ -359,6 +359,9 @@ public class AdminActionsScreen extends Application {
 
             // Update the viewAllBorrowings information
             viewAllBorrowings();
+            library.serializeUsers();
+            library.serializeBooks();
+            library.serializeBorrowings();
         }
     }
     private void editCategory() {
@@ -396,6 +399,9 @@ public class AdminActionsScreen extends Application {
             // Updating an existing category
             library.UpdateCategory(oldCategory, updatedCategory);
             System.out.println("Category updated successfully!");
+            library.serializeUsers();
+            library.serializeBooks();
+            library.serializeBorrowings();
         }
 
         // Update the displayed categories
@@ -432,6 +438,9 @@ public class AdminActionsScreen extends Application {
 
         // Call the method to remove the category and associated books
         library.removeCategoryAndBooks(categoryToRemove);
+        library.serializeUsers();
+        library.serializeBooks();
+        library.serializeBorrowings();
         System.out.println("Category and associated books removed successfully!");
 
         // Update the displayed categories
@@ -496,7 +505,9 @@ public class AdminActionsScreen extends Application {
 
             // Update the All Books ListView
             updateAllBooksListView();
-
+            library.serializeUsers();
+            library.serializeBooks();
+            library.serializeBorrowings();
             // Update the All Categories ListView
             updateAllCategoriesListView();
 
@@ -546,6 +557,9 @@ public class AdminActionsScreen extends Application {
             		    updatedUser.getEmail()
             		);
                 System.out.println("User credentials updated successfully!");
+                library.serializeUsers();
+                library.serializeBooks();
+                library.serializeBorrowings();
             });
 
         } else {
