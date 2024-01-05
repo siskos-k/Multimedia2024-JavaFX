@@ -149,6 +149,9 @@ public class UserActionsScreen extends Application {
             successAlert.setTitle("Borrow Book");
             successAlert.setHeaderText(null);
             successAlert.setContentText("Book borrowed successfully!");
+            library.serializeUsers();
+            library.serializeBooks();
+            library.serializeBorrowings();
             successAlert.showAndWait();
 
             // Update the Borrowed Books ListView
