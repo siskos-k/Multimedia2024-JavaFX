@@ -592,7 +592,7 @@ public void printAllCategories() {
     // Helper method to check if a book is currently borrowed by a user
     private boolean isBookBorrowed(User user, Book book) {
         for (Borrowing borrowing : allBorrowings) {
-            if (borrowing.getUser().equals(user) && borrowing.getBook().equals(book)) {
+            if (borrowing.getUser().getUsername().equals(user.getUsername()) && borrowing.getBook().getTitle().equals(book.getTitle())) {
                 return true;
             }
         }
@@ -623,26 +623,40 @@ public void printAllCategories() {
         // Inside the Library class
         public void editUserCredentialsByAdmin(Admin admin, String targetUsername, String newUsername, String newPassword, String newName, String newSurname, String newAdt, String newEmail) {
             // Check if the admin has privileges to edit user credentials
-           
-                User targetUser = getUserByUsername(targetUsername);
-    
-                if (targetUser != null) {
-                    // Update user details
-                    targetUser.setUsername(newUsername);
-                    targetUser.setPassword(newPassword);
-                    targetUser.setName(newName);
-                    targetUser.setSurname(newSurname);
-                    targetUser.setAdt(newAdt);
-                    targetUser.setEmail(newEmail);
-    
-                    System.out.println("User credentials updated successfully by admin.");
-                } else {
-                    System.out.println("User not found.");
-                }
-           
-            
+            User targetUser = getUserByUsername(targetUsername);
+
+            if (targetUser != null) {
+                // Update user details
+                targetUser.setUsername(newUsername);
+                targetUser.setPassword(newPassword);
+                targetUser.setName(newName);
+                targetUser.setSurname(newSurname);
+                targetUser.setAdt(newAdt);
+                targetUser.setEmail(newEmail);
+
+                // Update Borrowings with the new username
+                updateBorrowingsUsernames(targetUsername, newUsername);
+
+                System.out.println("User credentials updated successfully by admin.");
+            } else {
+                System.out.println("User not found.");
+            }
         }
-       
+
+        private void updateBorrowingsUsernames(String oldUsername, String newUsername) {
+            List<Borrowing> borrowingsToUpdate = allBorrowings.stream()
+                    .filter(borrowing -> borrowing.getUser().getUsername().equals(oldUsername))
+                    .collect(Collectors.toList());
+
+            for (Borrowing borrowing : borrowingsToUpdate) {
+                User user = borrowing.getUser();
+                user.setUsername(newUsername);
+
+                // Update the borrowing entry in the library
+                borrowing.getUser().setUsername(newUsername);
+            }
+        }
+
         private Borrowing findBorrowingByUserAndBookISBN(User user, String bookISBN) {
             for (Borrowing borrowing : allBorrowings) {
                 if (borrowing.getUser().equals(user) && borrowing.getBook().getISBN().equals(bookISBN)) {

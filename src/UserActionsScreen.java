@@ -79,7 +79,7 @@ public class UserActionsScreen extends Application {
         // Iterate over all borrowings in the library
         for (Borrowing borrowing : library.getAllBorrowings()) {
             // Check if the borrowing belongs to the current user
-            if (borrowing.getUser().getUsername().equals(user.getUsername())) {
+            if (borrowing.getUser().getAdt().equals(user.getAdt())) {
                 Book borrowedBook = borrowing.getBook();
 
                 // Check if the borrowed book title is in the library
@@ -120,7 +120,7 @@ public class UserActionsScreen extends Application {
         int maxBooksAllowed = 2;
 
         long userBorrowingsCount = library.getAllBorrowings().stream()
-                .filter(borrowing -> borrowing.getUser().getUsername().equals(user.getUsername()))
+                .filter(borrowing -> borrowing.getUser().getAdt().equals(user.getAdt()))
                 .count();
 
         if (userBorrowingsCount >= maxBooksAllowed) {
@@ -180,7 +180,7 @@ public class UserActionsScreen extends Application {
         if (bookToRate != null) {
             // Check if the user is currently borrowing the specified book
             boolean isCurrentlyBorrowing = library.getAllBorrowings().stream()
-                    .anyMatch(borrowing -> borrowing.getUser().getUsername().equals(user.getUsername()) && borrowing.getBook().getTitle().equals(bookToRate.getTitle()));
+                    .anyMatch(borrowing -> borrowing.getUser().getAdt().equals(user.getAdt()) && borrowing.getBook().getTitle().equals(bookToRate.getTitle()));
 
             if (isCurrentlyBorrowing) {
                 // Ask the user for a rating
