@@ -68,16 +68,23 @@ public class UserActionsScreen extends Application {
      }
 
     private void updateBorrowedBooksListView() {
+//        library.deserializeUsers();
+//        library.deserializeBooks();
+//        library.deserializeBorrowings();
+        
         System.out.println("Current username is: ");
         System.out.println("updateBorrowedBooksListView called" + library.getAllBorrowings());
-
+        for(Borrowing borrowing : library.getAllBorrowings()) {
+       	 System.out.println("User: " + borrowing.getUser().getUsername() + " has book: "+  borrowing.getBook().getTitle());
+       }
         ObservableList<String> borrowedBooks = FXCollections.observableArrayList();
 
         // Create a list to store borrowings to be removed
         List<Borrowing> borrowingsToRemove = new ArrayList<>();
 
         // Iterate over all borrowings in the library
-        for (Borrowing borrowing : library.getAllBorrowings()) {
+        
+       	 for (Borrowing borrowing : library.getAllBorrowings()) {
             // Check if the borrowing belongs to the current user
             if (borrowing.getUser().getAdt().equals(user.getAdt())) {
                 Book borrowedBook = borrowing.getBook();
@@ -149,13 +156,14 @@ public class UserActionsScreen extends Application {
             successAlert.setTitle("Borrow Book");
             successAlert.setHeaderText(null);
             successAlert.setContentText("Book borrowed successfully!");
-            library.serializeUsers();
-            library.serializeBooks();
-            library.serializeBorrowings();
+            
             successAlert.showAndWait();
 
             // Update the Borrowed Books ListView
             updateBorrowedBooksListView();
+            library.serializeUsers();
+            library.serializeBooks();
+            library.serializeBorrowings();
         } else {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
             errorAlert.setTitle("Error");

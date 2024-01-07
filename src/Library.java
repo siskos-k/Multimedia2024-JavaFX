@@ -74,15 +74,33 @@ public class Library implements Serializable {
             for (Borrowing borrowing : loadedBorrowings) {
                 String user = borrowing.getUser().getUsername();
                 String book = borrowing.getBook().getTitle();
-                System.out.println("Loaded Borrowing - User: " + user + ", Book: " + book);
+//                System.out.println("Loaded Borrowing - User: " + user + ", Book: " + book);
             }
+            System.out.println(allBorrowings);
+            for(Borrowing borrowing : allBorrowings) {
+            	 System.out.println("User: " + borrowing.getUser().getUsername() + " has book: "+  borrowing.getBook().getTitle());
+            } 
 
         }
     }
 
-     public List<Borrowing> getAllBorrowings () {
-    	 return this.allBorrowings;
-     }
+    public List<Borrowing> getAllBorrowings() {
+
+        // Filter out borrowings for books that are still in the library
+        List<Borrowing> validBorrowings = allBorrowings.stream()
+                .filter(borrowing -> {
+                    Book borrowedBook = borrowing.getBook();
+                    return books.stream().anyMatch(book -> book.getTitle().equals(borrowedBook.getTitle()));
+                })
+                .collect(Collectors.toList());
+
+        // Update allBorrowings to only include valid borrowings
+        allBorrowings.clear();
+        allBorrowings.addAll(validBorrowings);
+
+        return validBorrowings;
+    }
+
 
     // Deserialize users from a file
     
@@ -148,45 +166,27 @@ public class Library implements Serializable {
         System.out.println("Book added successfully!");
     }
     public void deleteBookByAdmin(Admin admin, String ISBN) {
-        Book bookToDelete = null;
+        // Remove the book from allBorrowings
+        allBorrowings.removeIf(borrowing -> borrowing.getBook().getISBN().equals(ISBN));
 
-        // Find the book to delete
-        for (Book book : books) {
-            if (book.getISBN().equals(ISBN)) {
-                bookToDelete = book;
-                break;
-            }
+        // Remove the book from the library's list of books
+        books.removeIf(book -> book.getISBN().equals(ISBN));
+
+        // Remove the book from each user's borrowings
+        for (User user : users) {
+            List<Borrowing> userBorrowings = user.getBorrowings();
+            userBorrowings.removeIf(borrowing -> borrowing.getBook().getISBN().equals(ISBN));
         }
 
-        if (bookToDelete != null) {
-            // Remove the book from each user's borrowings
-            for (User user : users) {
-                List<Borrowing> userBorrowings = user.getBorrowings();
-                List<Borrowing> borrowingsToRemove = new ArrayList<>();
+        System.out.println("Book with ISBN " + ISBN + " deleted successfully.");
 
-                // Check if the book is in the user's borrowings
-                for (Borrowing borrowing : userBorrowings) {
-                    if (borrowing.getBook().equals(bookToDelete)) {
-                        borrowingsToRemove.add(borrowing);
-                    }
-                }
-
-                // Remove the book from the user's borrowings
-                userBorrowings.removeAll(borrowingsToRemove);
-            }
-
-            // Remove the book from the library's list of books
-            books.remove(bookToDelete);
-
-            System.out.println("Book with ISBN " + ISBN + " deleted successfully.");
-
-            // Print the updated information
-            printLibraryInformation();
-        } else {
-            System.out.println("Book with ISBN " + ISBN + " not found.");
-        }
+        // Print the updated information
+        printLibraryInformation();
     }
 
+    
+    
+    
     // Helper method to print library information for debugging
     private void printLibraryInformation() {
         System.out.println("Current Library Information:");
@@ -195,12 +195,12 @@ public class Library implements Serializable {
 
         System.out.println("\nBooks:");
         for (Book book : books) {
-            System.out.println(book);
+            System.out.println(book.getTitle());
         }
 
         System.out.println("\nUsers:");
         for (User user : users) {
-            System.out.println(user);
+            System.out.println(user.getUsername());
         }
 
         System.out.println("\nBorrowings:");
@@ -213,7 +213,7 @@ public class Library implements Serializable {
 
     public void editBookByAdmin(Admin admin, String ISBN, String newTitle, String newAuthor, String newPublisher, int newReleaseYear, int newNumCopies, String newCategory) {
         Book bookToEdit = null;
-    
+
         // Find the book with the given ISBN
         for (Book book : books) {
             if (book.getISBN().equals(ISBN)) {
@@ -221,7 +221,7 @@ public class Library implements Serializable {
                 break;
             }
         }
-    
+
         // Edit the book if found
         if (bookToEdit != null) {
             // Update the book details
@@ -231,13 +231,25 @@ public class Library implements Serializable {
             bookToEdit.setReleaseYear(newReleaseYear);
             bookToEdit.setNumCopies(newNumCopies);
             bookToEdit.setCategory(newCategory);
-    
+
+            // Update the book details in allBorrowings
+            for (Borrowing borrowing : allBorrowings) {
+                Book borrowedBook = borrowing.getBook();
+                if (borrowedBook.getISBN().equals(ISBN)) {
+                    // Update the details in the borrowing entry
+                    borrowedBook.setTitle(newTitle);
+                    borrowedBook.setAuthor(newAuthor);
+                    borrowedBook.setPublisher(newPublisher);
+                    borrowedBook.setReleaseYear(newReleaseYear);
+                    borrowedBook.setCategory(newCategory);
+                }
+            }
+
             System.out.println("Book with ISBN " + ISBN + " edited successfully.");
         } else {
             System.out.println("Book with ISBN " + ISBN + " not found.");
         }
     }
-    
 
     //ADDING REMOVING AND EDITING CATEGORIES
     public void addCategory(String newCategory) {
@@ -292,21 +304,33 @@ public void printAllCategories() {
     
     
     public void borrowBook(User user, Book book) {
-        // Check if the book is available for borrowing
-    	  if (canUserBorrowMoreBooks(user)) {
-        if (book.getNumCopies() > 0) {
-            book.setNumCopies(book.getNumCopies() - 1);
-            Borrowing borrowing = new Borrowing(user, book);
-            user.getBorrowings().add(borrowing);
-            allBorrowings.add(borrowing);
-            System.out.println("Book borrowed successfully!");
+        // Check if the user can borrow more books
+        if (canUserBorrowMoreBooks(user)) {
+            if (book.getNumCopies() > 0) {
+                book.setNumCopies(book.getNumCopies() - 1);
+                Borrowing borrowing = new Borrowing(user, book);
+
+                // Add the borrowing to user's borrowings
+                user.getBorrowings().add(borrowing);
+
+                // Add the borrowing to allBorrowings
+                allBorrowings.add(borrowing);
+                for(Borrowing b : allBorrowings) {
+                    System.out.println("All: user:, title?: " + b.getUser().getUsername() + " " + b.getBook().getTitle());
+
+                	
+                }
+
+                System.out.println("Book borrowed successfully!");
+            } else {
+                System.out.println("Sorry, no copies available for borrowing.");
+            }
         } else {
-            System.out.println("Sorry, no copies available for borrowing.");
+            System.out.println("User has reached the maximum limit of borrowed books.");
         }
-    } else {
-        System.out.println("User has reached the maximum limit of borrowed books.");
     }
-}
+
+
     private boolean canUserBorrowMoreBooks(User user) {
         // Check if the user has less than 2 borrowed books
         return getUserBorrowedBooksCount(user) < 2;
@@ -530,63 +554,79 @@ public void printAllCategories() {
         User userToDelete = getUserByUsername(username);
 
         if (userToDelete != null) {
-            // Remove the user
-            users.remove(userToDelete);
+            // Remove all borrowings associated with this user from library's allBorrowings
+            allBorrowings.removeIf(borrowing -> borrowing.getUser().equals(userToDelete));
 
-            // Mark all books borrowed by this user as returned
-            for (Borrowing borrowing : allBorrowings) {
-                if (borrowing.getUser().equals(userToDelete)) {
-                    Book borrowedBook = borrowing.getBook();
-                    borrowedBook.setNumCopies(borrowedBook.getNumCopies() + 1);
+            // Mark all books borrowed by this user as returned and update the number of copies
+            for (Borrowing borrowing : userToDelete.getBorrowings()) {
+                Book borrowedBook = borrowing.getBook();
+
+                // Get the book ISBN
+                String bookISBN = borrowedBook.getISBN();
+
+                // Remove the book from allBorrowings
+                allBorrowings.removeIf(b -> b.getBook().getISBN().equals(bookISBN));
+
+                // Search in the library to find the book by ISBN
+                Book libraryBook = findBookByISBN(bookISBN);
+
+                // If the book is found, update the number of copies
+                if (libraryBook != null) {
+                    libraryBook.setNumCopies(libraryBook.getNumCopies() + 1);
                 }
             }
 
-            // Remove all borrowings associated with this user
-            allBorrowings.removeIf(borrowing -> borrowing.getUser().equals(userToDelete));
+            // Remove the user
+            users.remove(userToDelete);
 
             System.out.println("User " + username + " deleted successfully.");
         } else {
             System.out.println("User " + username + " not found.");
         }
     }
+
+
+
     public Borrowing terminateBorrowingByAdmin(Admin admin, String username, String ISBN) {
         // Check if the admin has viewing privileges
         if (admin.hasViewingPrivileges()) {
-            // Find the user by username
-            User user = getUserByUsername(username);
 
-            // Find the book by ISBN
-            Book book = findBookByISBN(ISBN);
+            // Find the borrowing entry in allBorrowings based on ISBN
+            Borrowing borrowingToRemove = allBorrowings.stream()
+                    .filter(borrowing -> borrowing.getUser().getUsername().equals(username)
+                            && borrowing.getBook().getISBN().equals(ISBN))
+                    .findFirst()
+                    .orElse(null);
 
-            if (user != null && book != null) {
-                // Check if the book is currently borrowed by the user
-                if (isBookBorrowed(user, book)) {
-                    // Remove the borrowing entry
-                    Borrowing borrowingToRemove = findBorrowing(user, book);
+            if (borrowingToRemove != null) {
+                // Find the corresponding book in the library based on ISBN
+                Book bookInLibrary = books.stream()
+                        .filter(book -> book.getISBN().equals(ISBN))
+                        .findFirst()
+                        .orElse(null);
+
+                if (bookInLibrary != null) {
+                    // Remove the borrowing entry from allBorrowings
                     allBorrowings.remove(borrowingToRemove);
-                    List <Borrowing> BorrowingsNew =  user.getBorrowings();
-                    
-                    boolean truee = BorrowingsNew.remove(borrowingToRemove);
-                    System.out.println(user.getBorrowings().remove(borrowingToRemove));
-                    user.setBorrowings(BorrowingsNew);
 
                     // Update the book's available copies
-                    book.setNumCopies(book.getNumCopies() + 1);
+                    bookInLibrary.setNumCopies(bookInLibrary.getNumCopies() + 1);
 
                     System.out.println("Borrowing terminated successfully by admin.");
                     return borrowingToRemove; // Return the terminated borrowing
                 } else {
-                    System.out.println("User " + username + " is not currently borrowing the book with ISBN " + ISBN + ".");
+                    System.out.println("Book with ISBN " + ISBN + " not found in the library.");
                 }
             } else {
-                System.out.println("User or book not found.");
+                System.out.println("No borrowing found for user " + username + " and book with ISBN " + ISBN + ".");
             }
         } else {
-            System.out.println("Admin does not have sufficient privileges to terminate borrowings.");
+            System.out.println("Admin does not have viewing privileges.");
         }
 
         return null; // Return null if termination fails
     }
+
 
     
     // Helper method to check if a book is currently borrowed by a user

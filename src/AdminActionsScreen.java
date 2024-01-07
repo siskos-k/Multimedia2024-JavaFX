@@ -270,7 +270,11 @@ public class AdminActionsScreen extends Application {
             editBookDialog.showAndWait();
 
             // Update the book list view after editing
+            library.serializeUsers();
+            library.serializeBooks();
+            library.serializeBorrowings();
             updateAllBooksListView();
+            
         } else {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
             errorAlert.setTitle("Error");
@@ -291,6 +295,9 @@ public class AdminActionsScreen extends Application {
 
         // Call the method to delete a book
         library.deleteBookByAdmin(admin, bookISBNToDelete);
+        library.serializeUsers();
+        library.serializeBooks();
+        library.serializeBorrowings();
 
         // Update the All Books ListView
         updateAllBooksListView();
@@ -347,6 +354,9 @@ public class AdminActionsScreen extends Application {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // Call the method to delete a user
             library.deleteUser(admin, usernameToDelete);
+            library.serializeUsers();
+            library.serializeBooks();
+            library.serializeBorrowings();
             
             // Update the user list view after deletion (if you have one)
             // updateAllUsersListView();
@@ -457,6 +467,8 @@ public class AdminActionsScreen extends Application {
     private void viewAllBorrowings() {
         // Create a StringBuilder to store borrowing information
         StringBuilder borrowingInfo = new StringBuilder();
+        System.out.println("view all borrowings called");
+        System.out.println("These are the available borrowings: "+library.getAllBorrowings());
 
         for (Borrowing borrowing : library.getAllBorrowings()) {
             // Append basic information

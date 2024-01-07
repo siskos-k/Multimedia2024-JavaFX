@@ -19,20 +19,22 @@ public class LibraryManagementSystem extends Application {
         Admin medialabAdmin = new Admin("a", "a");
         library.addAdmin(medialabAdmin);
         
-        library.deserializeUsers();
-        library.deserializeBooks();
-        library.deserializeBorrowings();
-        
-        
-//        initialization without serialization
-//        User medialabUser = new User("u", "u", "u", "u", "u", "u");
-//        library.addUser(medialabUser);
-//        library.addRandomUsers(5);
-//        library.addSampleBooksAndRatings();
-//        library.addSpecificBorrowings();
-//      library.serializeUsers();
+//        library.deserializeUsers();
+//        library.deserializeBooks();
+//        library.deserializeBorrowings();
+//        library.serializeUsers();
 //      library.serializeBooks();
 //      library.serializeBorrowings();
+//        
+//        initialization without serialization
+        User medialabUser = new User("u", "u", "u", "u", "u", "u");
+        library.addUser(medialabUser);
+        library.addRandomUsers(5);
+        library.addSampleBooksAndRatings();
+        library.addSpecificBorrowings();
+      library.serializeUsers();
+      library.serializeBooks();
+      library.serializeBorrowings();
         // Launch the JavaFX application
         launch(args);
     }
