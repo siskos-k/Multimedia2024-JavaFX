@@ -301,9 +301,6 @@ public class AdminActionsScreen extends Application {
 
         // Update the All Books ListView
         updateAllBooksListView();
-//        library.serializeUsers();
-//        library.serializeBooks();
-//        library.serializeBorrowings();
         // Save changes to books
     }
 

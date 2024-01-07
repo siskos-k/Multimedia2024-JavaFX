@@ -307,7 +307,7 @@ public void printAllCategories() {
         // Check if the user can borrow more books
         if (canUserBorrowMoreBooks(user)) {
             if (book.getNumCopies() > 0) {
-                book.setNumCopies(book.getNumCopies() - 1);
+                // Create a borrowing only if the book has available copies
                 Borrowing borrowing = new Borrowing(user, book);
 
                 // Add the borrowing to user's borrowings
@@ -315,11 +315,9 @@ public void printAllCategories() {
 
                 // Add the borrowing to allBorrowings
                 allBorrowings.add(borrowing);
-                for(Borrowing b : allBorrowings) {
-                    System.out.println("All: user:, title?: " + b.getUser().getUsername() + " " + b.getBook().getTitle());
 
-                	
-                }
+                // Update the book's available copies
+                book.setNumCopies(book.getNumCopies() - 1);
 
                 System.out.println("Book borrowed successfully!");
             } else {
@@ -659,8 +657,6 @@ public void printAllCategories() {
         }
        
         
-        // Add the findBorrowingByUserAndBookISBN method in the Library class
-        // Inside the Library class
         public void editUserCredentialsByAdmin(Admin admin, String targetUsername, String newUsername, String newPassword, String newName, String newSurname, String newAdt, String newEmail) {
             // Check if the admin has privileges to edit user credentials
             User targetUser = getUserByUsername(targetUsername);

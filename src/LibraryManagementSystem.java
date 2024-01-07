@@ -14,28 +14,33 @@ public class LibraryManagementSystem extends Application {
 
     private static Library library; // Declare library as a static variable
 
+    
+    
+    //	Παραδοχές: Για να τελειώσει ένας δανεισμός απαιτείται το username με το οποίο έγινε ο δανεισμός
+    // Οι χρήστες είναι καλά παιδιά και δε θα κάνουν πολλές φορές rate το ίδιο βιβλίο
+    
     public static void main(String[] args) {
         library = new Library(); // Initialize the library in the main method
         Admin medialabAdmin = new Admin("a", "a");
         library.addAdmin(medialabAdmin);
-        
-//        library.deserializeUsers();
-//        library.deserializeBooks();
-//        library.deserializeBorrowings();
-//        library.serializeUsers();
-//      library.serializeBooks();
-//      library.serializeBorrowings();
 //        
-//        initialization without serialization
-        User medialabUser = new User("u", "u", "u", "u", "u", "u");
-        library.addUser(medialabUser);
-        library.addRandomUsers(5);
-        library.addSampleBooksAndRatings();
-        library.addSpecificBorrowings();
-      library.serializeUsers();
+        library.deserializeUsers();
+        library.deserializeBooks();
+        library.deserializeBorrowings();
+        library.serializeUsers();
       library.serializeBooks();
       library.serializeBorrowings();
-        // Launch the JavaFX application
+//        
+//        initialization without serialization
+//        User medialabUser = new User("u", "u", "u", "u", "u", "u");
+//        library.addUser(medialabUser);
+//        library.addRandomUsers(5);
+//        library.addSampleBooksAndRatings();
+//        library.addSpecificBorrowings();
+//      library.serializeUsers();
+//      library.serializeBooks();
+//      library.serializeBorrowings();
+//        // Launch the JavaFX application
         launch(args);
     }
 
