@@ -78,6 +78,9 @@ public class CreateNewUserScreen extends Application {
                 // If no duplicates, create a new user
                 User newUser = new User(newUserUsername, newUserPassword, newName, newSurname, newAdt, newEmail);
                 library.addUser(newUser);
+                library.serializeUsers();
+                library.serializeBooks();
+                library.serializeBorrowings();
                 messageLabel.setText("New user created successfully!");
             }
         });

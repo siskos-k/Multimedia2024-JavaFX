@@ -137,7 +137,6 @@ public class AdminActionsScreen extends Application {
             Node saveButton = getDialogPane().lookupButton(saveButtonType);
             saveButton.setDisable(true);
 
-            // Do some validation (e.g., new username is not empty)
             newUsernameField.textProperty().addListener((observable, oldValue, newValue) -> {
                 saveButton.setDisable(newValue.trim().isEmpty());
             });
@@ -245,6 +244,9 @@ public class AdminActionsScreen extends Application {
         // Call the method to add a book
         library.addBookByAdmin(admin, newTitle, newAuthor, newPublisher, newReleaseYear, newISBN, newNumCopies, newCategory);
         System.out.println("Book added successfully!");
+        library.serializeUsers();
+        library.serializeBooks();
+        library.serializeBorrowings();
         updateAllBooksListView(); // Update the displayed books
         updateAllCategoriesListView();
     }

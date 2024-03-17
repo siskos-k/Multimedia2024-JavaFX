@@ -16,20 +16,19 @@ public class LibraryManagementSystem extends Application {
 
     
     
-    //	Παραδοχές: Για να τελειώσει ένας δανεισμός απαιτείται το username με το οποίο έγινε ο δανεισμός
     // Οι χρήστες είναι καλά παιδιά και δε θα κάνουν πολλές φορές rate το ίδιο βιβλίο
     
     public static void main(String[] args) {
         library = new Library(); // Initialize the library in the main method
-        Admin medialabAdmin = new Admin("a", "a");
+        Admin medialabAdmin = new Admin("medialab", "medialab_2024");
         library.addAdmin(medialabAdmin);
 //        
         library.deserializeUsers();
         library.deserializeBooks();
         library.deserializeBorrowings();
         library.serializeUsers();
-      library.serializeBooks();
-      library.serializeBorrowings();
+        library.serializeBooks();
+        library.serializeBorrowings();
 //        
 //        initialization without serialization
 //        User medialabUser = new User("u", "u", "u", "u", "u", "u");
@@ -52,27 +51,21 @@ public class LibraryManagementSystem extends Application {
         root.setPadding(new Insets(10));
         root.setAlignment(Pos.CENTER);
 
-        // Welcome message
         Label welcomeLabel = new Label("Welcome to MultiMediaLibrary!");
         welcomeLabel.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
 
-        // Create an HBox for the title to center it
         HBox titleBox = new HBox(welcomeLabel);
         titleBox.setAlignment(Pos.CENTER);
         root.getChildren().add(titleBox);
 
-        // Get the top-rated books
         List<Book> topRatedBooks = library.getTopRatedBooks(5);
 
-        // Create a new VBox for the top-rated books list
         VBox booksListVBox = new VBox(5);
 
-        // Display the top-rated books title
         Label topRatedTitleLabel = new Label("Top Rated Books:");
         topRatedTitleLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold;");
         booksListVBox.getChildren().add(topRatedTitleLabel);
 
-        // Display the top-rated books
         for (Book book : topRatedBooks) {
             double roundedRating = Math.round(book.getAverageRating() * 100.0) / 100.0;
             Label bookLabel = new Label(book.getTitle() + " (Rating: " + String.format("%.2f", roundedRating) + ")");
